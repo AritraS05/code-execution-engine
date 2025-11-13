@@ -9,6 +9,13 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
+interface ProblemDetails {
+  title: string;
+  description: string;
+  sampleInput: string;
+  sampleOutput: string;
+}
+
 export default function codeEditor(){
   const [code, setCode] = useState("//start your magic here :)");
   const [language, setLanguage] = useState("cpp");
@@ -17,8 +24,21 @@ export default function codeEditor(){
     { id: "sum", name: "Sum of Two Numbers" },
     { id: "sort", name: "Sort Array" }
   ];
+  const [problemUrl, setProblemUrl] = useState("");
+  const [problemDetails, setProblemDetails] = useState<ProblemDetails|null>(null);
   const [problemId, setProblemId] = useState(problems[0].id);
   const handleEditorChange = (value:string | undefined) => setCode(value ?? "");
+
+const fetchProblemDetails = async () => {
+  setProblemDetails(null);
+  const resp = await fetch('/api/fetchProblem', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: problemUrl })
+  });
+  const data = await resp.json();
+  setProblemDetails(data);
+};
 
   const handleSubmit = async  () =>{
     toast.loading(<LoaderOne/>);
@@ -48,6 +68,7 @@ export default function codeEditor(){
 
   return (
     <div className="bg-black">
+      <div className="flex items-center p-4 space-x-4">
       <select className="text-amber-100"
         value={language}
         onChange={e => setLanguage(e.target.value)}
@@ -57,6 +78,34 @@ export default function codeEditor(){
         <option value="python">Python</option>
         <option value="js">JavaScript</option>
       </select>
+      {/* //TODO: implemet the problem fetching logic from diff websites so that the problems are more
+      //TODO: easily accessible as of now this is giving a huge number of errors :/ */}
+      {/* <input
+          className="border-amber-50 text-amber-100"
+          value={problemUrl}
+          onChange={e => setProblemUrl(e.target.value)}
+          placeholder="Paste problem link here"
+        />
+        <button onClick={fetchProblemDetails} className="border-amber-50  text-amber-50">Fetch</button> */}
+        </div>
+      {/* <div>
+        
+        
+        {problemDetails && (
+          <div className="text-amber-100">
+            <h2>{problemDetails.title}</h2>
+            <p>{problemDetails.description}</p>
+            <div>
+              <b>Sample Input</b>
+              <pre>{problemDetails.sampleInput}</pre>
+              <b>Sample Output</b>
+              <pre>{problemDetails.sampleOutput}</pre>
+            </div>
+          </div>
+        )}
+      </div> */}
+
+      <div>
       <Editor
         height="91vh"
         language={language}
@@ -77,6 +126,7 @@ export default function codeEditor(){
         )}
       </div>
     )}
+    </div>
       <Toaster position="top-right" />
     </div>
   );
