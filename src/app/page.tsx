@@ -4,18 +4,18 @@ import dynamic from "next/dynamic";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/stateful-button";
 import { Toaster,toast} from "react-hot-toast";
-
+import { LoaderOne } from "@/components/ui/loader";
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 export default function codeEditor(){
   const [code, setCode] = useState("//start your magic here :)");
   const [language, setLanguage] = useState("cpp");
-  const [result, setResult] = useState<string|null>(null);
+  const [result, setResult] = useState<{verdict:string;errors?:string;details?:string[]}|null>(null);
 
   const handleEditorChange = (value:string | undefined) => setCode(value ?? "");
 
   const handleSubmit = async  () =>{
-    setResult("Judging.........");
+    toast.loading(<LoaderOne/>);
     try{
       const res = await fetch('/api/submit',{
         method:"POST",
@@ -36,12 +36,7 @@ export default function codeEditor(){
     }
     catch(err){
       toast.dismiss();
-       if(err instanceof Error){
-        setResult(`error : ${err.message}`);
-       }
-       else{
-        setResult(`error : ${String(err)}`);
-       }
+      toast.error(`Error : ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -68,17 +63,15 @@ export default function codeEditor(){
         Submit
       </Button>
       {result && (
-        <div style={{
-          marginTop: 16,
-          background: "#222",
-          color: "#fff",
-          padding: 12,
-          borderRadius: 4
-        }}>
-          <Toaster position="top-right" />
-          {typeof result === 'string' ? result : JSON.stringify(result)}
-        </div>
-      )}
+      <div style={{ marginTop: 10 }}>
+        <b>Verdict:</b> {result.verdict}
+        {result.errors && <div><b>Errors:</b> {result.errors}</div>}
+        {result.details && (
+          <ul>{result.details.map((d, i) => <li key={i}>{d}</li>)}</ul>
+        )}
+      </div>
+    )}
+      <Toaster position="top-right" />
     </div>
   );
 }
