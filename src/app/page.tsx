@@ -5,13 +5,19 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/stateful-button";
 import { Toaster,toast} from "react-hot-toast";
 import { LoaderOne } from "@/components/ui/loader";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 export default function codeEditor(){
   const [code, setCode] = useState("//start your magic here :)");
   const [language, setLanguage] = useState("cpp");
   const [result, setResult] = useState<{verdict:string;errors?:string;details?:string[]}|null>(null);
-
+  const problems = [
+    { id: "sum", name: "Sum of Two Numbers" },
+    { id: "sort", name: "Sort Array" }
+  ];
+  const [problemId, setProblemId] = useState(problems[0].id);
   const handleEditorChange = (value:string | undefined) => setCode(value ?? "");
 
   const handleSubmit = async  () =>{
@@ -22,7 +28,7 @@ export default function codeEditor(){
         headers:{
           "content-type":"application/json"
         },
-        body: JSON.stringify({code,language})
+        body: JSON.stringify({code,language,problemId})
       })
 
       const data = await res.json();
@@ -41,8 +47,8 @@ export default function codeEditor(){
   }
 
   return (
-    <div>
-      <select
+    <div className="bg-black">
+      <select className="text-amber-100"
         value={language}
         onChange={e => setLanguage(e.target.value)}
         style={{ marginLeft: 12, marginBottom: 12 }}
@@ -52,7 +58,7 @@ export default function codeEditor(){
         <option value="js">JavaScript</option>
       </select>
       <Editor
-        height="500px"
+        height="91vh"
         language={language}
         theme="vs-dark"
         value={code}
