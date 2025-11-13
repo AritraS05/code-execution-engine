@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/stateful-button";
+import { Toaster,toast} from "react-hot-toast";
+
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 export default function codeEditor(){
@@ -23,10 +25,17 @@ export default function codeEditor(){
         body: JSON.stringify({code,language})
       })
 
-      const verdict = await res.json();
-      setResult(verdict);
+      const data = await res.json();
+      toast.dismiss();
+      if(data.verdict === "Accepted"){
+        toast.success("Accepted :)");
+      }
+      else{
+        toast.error("try again");
+      }
     }
     catch(err){
+      toast.dismiss();
        if(err instanceof Error){
         setResult(`error : ${err.message}`);
        }
@@ -66,6 +75,7 @@ export default function codeEditor(){
           padding: 12,
           borderRadius: 4
         }}>
+          <Toaster position="top-right" />
           {typeof result === 'string' ? result : JSON.stringify(result)}
         </div>
       )}
