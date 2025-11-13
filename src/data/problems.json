@@ -1,0 +1,16 @@
+[
+  {
+    "id": "sum",
+    "name": "Sum of Two Numbers",
+    "description": "Write a program to sum two integers.",
+    "sampleInput": "3 5",
+    "sampleOutput": "8"
+  },
+  {
+    "id": "sort",
+    "name": "Sort Array",
+    "description": "Sort an array of integers.",
+    "sampleInput": "4 1 3 2",
+    "sampleOutput": "1 2 3 4"
+  }
+]

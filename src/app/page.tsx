@@ -1,11 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/stateful-button";
 import { Toaster,toast} from "react-hot-toast";
 import { LoaderOne } from "@/components/ui/loader";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -20,26 +23,39 @@ export default function codeEditor(){
   const [code, setCode] = useState("//start your magic here :)");
   const [language, setLanguage] = useState("cpp");
   const [result, setResult] = useState<{verdict:string;errors?:string;details?:string[]}|null>(null);
-  const problems = [
-    { id: "sum", name: "Sum of Two Numbers" },
-    { id: "sort", name: "Sort Array" }
-  ];
+  // const problems = [
+  //   { id: "sum", name: "Sum of Two Numbers" },
+  //   { id: "sort", name: "Sort Array" }
+  // ];
   const [problemUrl, setProblemUrl] = useState("");
   const [problemDetails, setProblemDetails] = useState<ProblemDetails|null>(null);
-  const [problemId, setProblemId] = useState(problems[0].id);
+  const { data: problems, isLoading } = useSWR('/api/problems', fetcher);
+  const [problemId, setProblemId] = useState<string>();
+  const [selectedProblem, setSelectedProblem] = useState<any>();
   const handleEditorChange = (value:string | undefined) => setCode(value ?? "");
+  useEffect(() => {
+    if (problems) {
+      setProblemId(problems[0].id);
+      setSelectedProblem(problems[0]);
+    }
+  }, [problems]);
 
-const fetchProblemDetails = async () => {
-  setProblemDetails(null);
-  const resp = await fetch('/api/fetchProblem', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: problemUrl })
-  });
-  const data = await resp.json();
-  setProblemDetails(data);
-};
-
+  useEffect(() => {
+    if (problems && problemId) {
+      setSelectedProblem(problems.find((p: any) => p.id === problemId));
+    }
+  }, [problemId, problems]);
+// const fetchProblemDetails = async () => {
+//   setProblemDetails(null);
+//   const resp = await fetch('/api/fetchProblem', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ url: problemUrl })
+//   });
+//   const data = await resp.json();
+//   setProblemDetails(data);
+// };
+    if (isLoading) return <div>Loading problems...</div>;
   const handleSubmit = async  () =>{
     toast.loading(<LoaderOne/>);
     try{
@@ -78,6 +94,14 @@ const fetchProblemDetails = async () => {
         <option value="python">Python</option>
         <option value="js">JavaScript</option>
       </select>
+      <div className="text-cyan-300">
+        <h2>{selectedProblem?.name}</h2>
+        <p>{selectedProblem?.description}</p>
+        <b>Sample Input:</b>
+        <pre>{selectedProblem?.sampleInput}</pre>
+        <b>Sample Output:</b>
+        <pre>{selectedProblem?.sampleOutput}</pre>
+      </div>
       {/* //TODO: implemet the problem fetching logic from diff websites so that the problems are more
       //TODO: easily accessible as of now this is giving a huge number of errors :/ */}
       {/* <input
