@@ -7,7 +7,7 @@ import { Toaster,toast} from "react-hot-toast";
 import { LoaderOne } from "@/components/ui/loader";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 import useSWR from 'swr';
-
+import JSCodeRunner from "@/components/JSCodeRunnner";
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -138,6 +138,7 @@ export default function codeEditor(){
         defaultValue="//start your magic here :)"
         onChange={handleEditorChange}
       />
+      <JSCodeRunner code={code} />
       <Button onClick={handleSubmit}>
         Submit
       </Button>
