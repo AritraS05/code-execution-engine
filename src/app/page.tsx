@@ -58,32 +58,35 @@ export default function codeEditor(){
 //   setProblemDetails(data);
 // };
     if (isLoading) return <div>Loading problems...</div>;
-  const handleSubmit = async  () =>{
-    toast.loading(<LoaderOne/>);
-    try{
-      const res = await fetch('/api/submit',{
-        method:"POST",
-        headers:{
-          "content-type":"application/json"
+  const handleSubmit = async () => {
+    toast.loading(<LoaderOne />);
+    try {
+      const res = await fetch('/api/submit', {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
         },
-        body: JSON.stringify({code,language,input})
-      })
+        body: JSON.stringify({ code, language, input })
+      });
 
       const data = await res.json();
       toast.dismiss();
-      if(data.verdict === "Accepted"){
+      if (data.output) {
         toast.success("no errors :)");
-      }
-      else{
+        setOutput(data.output);
+      } else if (data.error) {
         toast.error("try again");
+        setOutput(data.error);
+      } else {
+        toast.error("Unknown error");
+        setOutput("Unknown error");
       }
-      setOutput(data.output || data.error || " ");
-    }
-    catch(err){
+    } catch (err) {
       toast.dismiss();
       toast.error(`Error : ${err instanceof Error ? err.message : String(err)}`);
+      setOutput("Error: " + (err instanceof Error ? err.message : String(err)));
     }
-  }
+  };
 
   return (
     <div className="bg-black">
