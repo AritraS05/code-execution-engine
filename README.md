@@ -34,3 +34,6 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## for testing purpose
+\judgeSandbox\temp\testjob> `docker run --rm -m 128m --cpus=0.5 --pids-limit=64 -v "${PWD}:/app" -w /app judge-cpp bash run.sh input.txt output.txt`
