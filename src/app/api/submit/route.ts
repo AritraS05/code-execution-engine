@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest){
-    const {code, language, problemId} = await req.json();
+    const {code, language, input} = await req.json();
     let verdict = "Accepted", errors:string|null=null,details:string[]=[];
     if(!code){
         verdict="Rejected";

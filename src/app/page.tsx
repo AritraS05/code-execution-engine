@@ -23,6 +23,8 @@ export default function codeEditor(){
   const [code, setCode] = useState("//start your magic here :)");
   const [language, setLanguage] = useState("cpp");
   const [result, setResult] = useState<{verdict:string;errors?:string;details?:string[]}|null>(null);
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
   // const problems = [
   //   { id: "sum", name: "Sum of Two Numbers" },
   //   { id: "sort", name: "Sort Array" }
@@ -64,17 +66,18 @@ export default function codeEditor(){
         headers:{
           "content-type":"application/json"
         },
-        body: JSON.stringify({code,language,problemId})
+        body: JSON.stringify({code,language,input})
       })
 
       const data = await res.json();
       toast.dismiss();
       if(data.verdict === "Accepted"){
-        toast.success("Accepted :)");
+        toast.success("no errors :)");
       }
       else{
         toast.error("try again");
       }
+      setOutput(data.output || data.error || " ");
     }
     catch(err){
       toast.dismiss();
@@ -94,14 +97,6 @@ export default function codeEditor(){
         <option value="python">Python</option>
         <option value="js">JavaScript</option>
       </select>
-      <div className="text-cyan-300">
-        <h2>{selectedProblem?.name}</h2>
-        <p>{selectedProblem?.description}</p>
-        <b>Sample Input:</b>
-        <pre>{selectedProblem?.sampleInput}</pre>
-        <b>Sample Output:</b>
-        <pre>{selectedProblem?.sampleOutput}</pre>
-      </div>
       {/* //TODO: implemet the problem fetching logic from diff websites so that the problems are more
       //TODO: easily accessible as of now this is giving a huge number of errors :/ */}
       {/* <input
@@ -138,10 +133,16 @@ export default function codeEditor(){
         defaultValue="//start your magic here :)"
         onChange={handleEditorChange}
       />
-      <JSCodeRunner code={code} />
+      <textarea
+      placeholder="Paste input here"
+      value={input}
+      onChange={e => setInput(e.target.value)}
+    />
+      {/* <JSCodeRunner code={code} /> */}
       <Button onClick={handleSubmit}>
         Submit
       </Button>
+      <pre>{output}</pre>
       {result && (
       <div style={{ marginTop: 10 }}>
         <b>Verdict:</b> {result.verdict}
