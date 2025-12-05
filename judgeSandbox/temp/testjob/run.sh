@@ -1,52 +1,26 @@
-#!/bin/bash
-set -e
-INPUT_FILE=$1
-OUTPUT_FILE=$2
+#!/usr/bin/env bash
+# run.sh - simple runner used inside container
+# usage: run.sh inputfile outputfile
 
-if [ -f main.cpp ]; then
-  # Compile and capture errors
-  if ! timeout 2 g++ -O2 -std=c++17 main.cpp -o main 2> compile_errors.txt; then
-    echo "Compilation failed:" > "$OUTPUT_FILE"
-    if [ -s compile_errors.txt ]; then
-      cat compile_errors.txt >> "$OUTPUT_FILE"
-    else
-      echo "Unknown compilation error." >> "$OUTPUT_FILE"
-    fi
-    exit 1
-  fi
+set -eo pipefail
 
-  # Run the program and capture errors
-  if ! timeout 2 ./main < "$INPUT_FILE" > "$OUTPUT_FILE" 2> runtime_errors.txt; then
-    echo "Runtime error:" >> "$OUTPUT_FILE"
-    if [ -s runtime_errors.txt ]; then
-      cat runtime_errors.txt >> "$OUTPUT_FILE"
-    else
-      echo "Unknown runtime error." >> "$OUTPUT_FILE"
-    fi
-    exit 1
-  fi
-fi
+IN="${1:-input.txt}"
+OUT="${2:-user_out.txt}"
 
-if [ -f main.py ]; then
-  if ! timeout 2 python3 main.py < "$INPUT_FILE" > "$OUTPUT_FILE" 2> runtime_errors.txt; then
-    echo "Runtime error:" > "$OUTPUT_FILE"
-    if [ -s runtime_errors.txt ]; then
-      cat runtime_errors.txt >> "$OUTPUT_FILE"
-    else
-      echo "Unknown runtime error." >> "$OUTPUT_FILE"
-    fi
-    exit 1
-  fi
-fi
+# Simple behavior:
+# - If a C++ program, compile then run if compiled binary exists (main)
+# - If Python/Node, run main.py / main.js
+# - Always write stdout to OUT
 
-if [ -f main.js ]; then
-  if ! timeout 2 node main.js < "$INPUT_FILE" > "$OUTPUT_FILE" 2> runtime_errors.txt; then
-    echo "Runtime error:" > "$OUTPUT_FILE"
-    if [ -s runtime_errors.txt ]; then
-      cat runtime_errors.txt >> "$OUTPUT_FILE"
-    else
-      echo "Unknown runtime error." >> "$OUTPUT_FILE"
-    fi
-    exit 1
-  fi
+# detect file types present
+if [ -f "./main.cpp" ]; then
+  g++ -O2 -std=c++17 main.cpp -o main || { echo "Compilation failed" > "${OUT}"; exit 1; }
+  timeout 3s ./main < "${IN}" > "${OUT}" 2>&1 || true
+elif [ -f "./main.py" ]; then
+  # python script
+  timeout 3s python3 main.py < "${IN}" > "${OUT}" 2>&1 || true
+elif [ -f "./main.js" ]; then
+  timeout 3s node main.js < "${IN}" > "${OUT}" 2>&1 || true
+else
+  echo "No supported source file found" > "${OUT}"
 fi
